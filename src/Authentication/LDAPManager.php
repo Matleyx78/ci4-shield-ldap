@@ -88,7 +88,7 @@ class LDAPManager
         }
 
         if ($this->isAuthenticated()) {
-            $this->attributes = $this->loadAttributes();
+            $this->attributes = $this->loadAttributes() ?? [];
             $this->group_sids = $this->loadTokengroups();
         }
     }
@@ -114,8 +114,18 @@ class LDAPManager
      */
     public function auth()
     {
-        $ldap_domain = config('AuthLDAP')->ldap_domain;
-        $ldap_user   = $ldap_domain . '\\' . $this->username;
+        $config = config('AuthLDAP');
+        
+        // Build user DN based on LDAP type
+        if ($config->ldap_type === 'ldap') {
+            // Standard LDAP: uid=username,search_base
+            $ldap_user = $config->login_attribute . '=' . $this->username . ',' . $config->search_base;
+            log_message('debug', 'LDAPManager: Using LDAP-style authentication with DN: ' . $ldap_user);
+        } else {
+            // Active Directory: domain\username  
+            $ldap_user = $config->ldap_domain . '\\' . $this->username;
+            log_message('debug', 'LDAPManager: Using AD-style authentication with user: ' . $ldap_user);
+        }
 
         ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3);
         ldap_set_option($this->connection, LDAP_OPT_REFERRALS, 0);

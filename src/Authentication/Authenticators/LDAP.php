@@ -346,12 +346,25 @@ class LDAP implements AuthenticatorInterface
         if ($ldapManager->isAuthenticated()) {
             // Update user entity with ldap attributes and group sids
             $ldapAttributes        = $ldapManager->getAttributes();
-            $user->mail            = $ldapAttributes['mail'];
-            $user->dn              = $ldapAttributes['distinguishedName'];
-            $user->object_sid      = $ldapAttributes['objectSid'];
+            $user->mail            = $ldapAttributes['mail'] ?? null;
+            $user->dn              = $ldapAttributes['distinguishedName'] ?? $ldapAttributes['dn'] ?? null;
+            $user->object_sid      = $ldapAttributes['objectSid'] ?? $ldapAttributes['objectSID'] ?? null;
             $user->ldap_attributes = json_encode($ldapAttributes);
             $user->ldap_group_sids = json_encode($ldapManager->getGroupSids());
             $this->provider->update($user->id, $user);
+
+            // Ensure user has an email identity for Shield compatibility
+            if ($user->getEmailIdentity() === null && !empty($user->mail)) {
+                try {
+                    $user->createEmailIdentity([
+                        'secret' => $user->mail,
+                    ]);
+                    // Reload user to get the new identity
+                    $user = $this->provider->findById($user->id);
+                } catch (\Exception $e) {
+                    log_message('error', 'Failed to create email identity: ' . $e->getMessage());
+                }
+            }
 
             if (config('AuthLDAP')->storePasswordInSession) {
                 $encrypter = Services::encrypter();
