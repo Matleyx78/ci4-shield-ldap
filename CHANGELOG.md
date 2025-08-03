@@ -5,7 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - 2025-08-02
+## [2.1.0] - 2025-08-03 - Namespace Update and Test Enhancements
+
+### Added
+- **Comprehensive Test Suite**
+  - `EnhancedLdapTest.php` - Core LDAP functionality testing (18 assertions)
+  - `UserTest.php` - Enhanced User entity testing (6 tests)
+  - `LdapAuthenticationTest.php` - Integration testing (32 assertions)
+  - Full test coverage for OpenLDAP/FreeIPA and Active Directory configurations
+
+### Changed
+- **BREAKING CHANGE**: Namespace updated from `Rakoitde\Shieldldap\` to `Fortyseeds\ShieldLdap\`
+  - Updated all PHP files to use new namespace
+  - Updated autoload configuration in composer.json
+  - Ensures compatibility with `fortyseeds/ci4-shield-ldap` package name
+- **PHPUnit Configuration**: Updated database configuration to support PostgreSQL (in addition to MySQL)
+
+### Migration from v2.0.0 to v2.1.0
+```php
+// Update all use statements from:
+use Rakoitde\Shieldldap\...;
+// To:
+use Fortyseeds\ShieldLdap\...;
+```
+
+```bash
+# Update autoload after namespace change
+composer dump-autoload
+```
+
+---
+
+## [2.0.0] - 2025-08-02 - Enhancements and OpenLDAP-Support
 
 ### Added
 - **OpenLDAP/FreeIPA/389 Directory Server support**
@@ -37,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **UserIdentity Issues**: Automatic creation and management of user identities
 - **LDAP Manager**: Enhanced attribute loading with null safety
 
-## [1.1.0] - Database Migration Enhancement
+## [1.1.0] - 2024-12-11 - Database Migration Enhancement
 
 ### Fixed
 - **Dynamic Table Name**: DB Migration now reads table name from `Auth.php` config instead of hardcoded 'user' table
@@ -49,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated migration to dynamically detect user table name from Shield configuration
 - Improved compatibility with custom Shield installations using non-standard table names
 
-## [1.x] - Original Version
+## [1.x] - 2024-11-17 - Original Version
 
 ### Features
 - Active Directory authentication support
@@ -59,16 +90,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## Migration Guide from v1.x to v2.0
+## Migration Guide from v1.x to v2.1
 
-### 1. Update Configuration
+### 1. Update Composer and Namespace
+```bash
+composer remove rakoitde/shieldldap
+composer require fortyseeds/ci4-shield-ldap
+composer dump-autoload
+```
+
+### 2. Update all PHP files using the library
+```php
+// Change all use statements from:
+use Rakoitde\Shieldldap\Authentication\Authenticators\LDAP;
+use Rakoitde\Shieldldap\Entities\User;
+
+// To:
+use Fortyseeds\ShieldLdap\Authentication\Authenticators\LDAP;
+use Fortyseeds\ShieldLdap\Entities\User;
+```
+
+### 3. Update Configuration
 ```php
 // Add these new properties to your AuthLDAP config:
 public string $ldap_type = 'ad'; // or 'ldap' for OpenLDAP/FreeIPA
 public string $login_attribute = 'uid'; // for OpenLDAP/FreeIPA
 ```
 
-### 2. Update Attributes List
+### 4. Update Attributes List
 For OpenLDAP/FreeIPA, replace the attributes array:
 ```php
 public array $attributes = [
@@ -78,10 +127,4 @@ public array $attributes = [
     'employeeNumber', 'employeeType', 'departmentNumber',
     'krbPrincipalName', 'krbCanonicalName', 'ipaUniqueID', 'memberOf'
 ];
-```
-
-### 3. Update Composer
-```bash
-composer remove rakoitde/shieldldap
-composer require fortyseeds/ci4-shield-ldap
 ```
