@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Rakoitde\Shieldldap\Config;
+namespace Fortyseeds\ShieldLdap\Config;
 
 use App\Config\Auth;
 use CodeIgniter\Config\BaseConfig;
 
-// use Rakoitde\Shieldldap\Config\AuthLDAP as ShieldAuthLDAP;
+// use Fortyseeds\ShieldLdap\Config\AuthLDAP as ShieldAuthLDAP;
 
 /**
  * LDAP Authenticator Configuration

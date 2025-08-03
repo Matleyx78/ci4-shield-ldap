@@ -1,6 +1,6 @@
 <?php
 
-namespace Rakoitde\Shieldldap\Database\Migrations;
+namespace Fortyseeds\ShieldLdap\Database\Migrations;
 
 use CodeIgniter\Database\Forge;
 use CodeIgniter\Database\Migration;

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Rakoitde\Shieldldap\Models;
+namespace Fortyseeds\ShieldLdap\Models;
 
 use CodeIgniter\Shield\Models\UserModel as ShieldUserModel;
-use Rakoitde\Shieldldap\Entities\User;
+use Fortyseeds\ShieldLdap\Entities\User;
 
 class UserModel extends ShieldUserModel
 {

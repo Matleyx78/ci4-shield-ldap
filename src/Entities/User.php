@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Rakoitde\Shieldldap\Entities;
+namespace Fortyseeds\ShieldLdap\Entities;
 
 use CodeIgniter\Shield\Entities\User as ShieldUserEntity;
 use CodeIgniter\Shield\Entities\UserIdentity;
 use CodeIgniter\Shield\Models\UserIdentityModel;
-use Rakoitde\Shieldldap\Authentication\LDAPManager;
+use Fortyseeds\ShieldLdap\Authentication\LDAPManager;
 use stdClass;
 
 class User extends ShieldUserEntity

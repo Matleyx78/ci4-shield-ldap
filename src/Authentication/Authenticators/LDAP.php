@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Rakoitde\Shieldldap\Authentication\Authenticators;
+namespace Fortyseeds\ShieldLdap\Authentication\Authenticators;
 
 use CodeIgniter\Config\Factories;
 use CodeIgniter\Events\Events;
@@ -24,7 +24,7 @@ use CodeIgniter\Shield\Models\UserModel;
 use CodeIgniter\Shield\Result;
 use Config\Security;
 use Config\Services;
-use Rakoitde\Shieldldap\Authentication\LDAPManager;
+use Fortyseeds\ShieldLdap\Authentication\LDAPManager;
 use stdClass;
 
 class LDAP implements AuthenticatorInterface

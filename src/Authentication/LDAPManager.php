@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Rakoitde\Shieldldap\Authentication;
+namespace Fortyseeds\ShieldLdap\Authentication;
 
 use CodeIgniter\Shield\Entities\User;
 use LDAP\Connection;
-use Rakoitde\Shieldldap\Config\AuthLDAP;
+use Fortyseeds\ShieldLdap\Config\AuthLDAP;
 use UnexpectedValueException;
 
 /**
