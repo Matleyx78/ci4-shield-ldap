@@ -323,63 +323,90 @@ class LDAP implements AuthenticatorInterface
         // check afterword.
         $givenPassword = $credentials['password'];
         unset($credentials['password']);
-        // Find the existing user
-        $user = $this->provider->findByCredentials($credentials);
-
-        if ($user === null) {
-            return new Result([
-                'success' => false,
-                'reason'  => lang('Auth.badAttempt'),
-            ]);
-        }
-
-        // Authenticate against LDAP
+        
+        // First authenticate against LDAP
+        log_message('debug', 'LDAP Authenticator: Starting LDAP authentication for user: ' . $credentials['username']);
         $ldapManager = new LDAPManager($credentials['username'], $givenPassword);
 
         if ($ldapManager->isConnected() === false) {
+            log_message('debug', 'LDAP Authenticator: LDAP connection failed');
             return new Result([
                 'success' => false,
                 'reason'  => lang('AuthLDAP.ldapConnectionFailed'),
             ]);
         }
 
-        if ($ldapManager->isAuthenticated()) {
-            // Update user entity with ldap attributes and group sids
-            $ldapAttributes        = $ldapManager->getAttributes();
-            $user->mail            = $ldapAttributes['mail'] ?? null;
-            $user->dn              = $ldapAttributes['distinguishedName'] ?? $ldapAttributes['dn'] ?? null;
-            $user->object_sid      = $ldapAttributes['objectSid'] ?? $ldapAttributes['objectSID'] ?? null;
-            $user->ldap_attributes = json_encode($ldapAttributes);
-            $user->ldap_group_sids = json_encode($ldapManager->getGroupSids());
-            $this->provider->update($user->id, $user);
-
-            // Ensure user has an email identity for Shield compatibility
-            if ($user->getEmailIdentity() === null && !empty($user->mail)) {
-                try {
-                    $user->createEmailIdentity([
-                        'secret' => $user->mail,
-                    ]);
-                    // Reload user to get the new identity
-                    $user = $this->provider->findById($user->id);
-                } catch (\Exception $e) {
-                    log_message('error', 'Failed to create email identity: ' . $e->getMessage());
-                }
-            }
-
-            if (config('AuthLDAP')->storePasswordInSession) {
-                $encrypter = Services::encrypter();
-                session()->set('password', $encrypter->encrypt($givenPassword));
-            }
-
+        if (!$ldapManager->isAuthenticated()) {
+            log_message('debug', 'LDAP Authenticator: LDAP authentication failed');
             return new Result([
-                'success'   => true,
-                'extraInfo' => $user,
+                'success' => false,
+                'reason'  => lang('AuthLDAP.ldapBindingFailed'),
             ]);
+        }
+        
+        log_message('debug', 'LDAP Authenticator: LDAP authentication successful, finding/creating user');
+        
+        // Find the existing user or create new one
+        $user = $this->provider->findByCredentials($credentials);
+        
+        if ($user === null) {
+            log_message('debug', 'LDAP Authenticator: User not found in DB, creating new user');
+            // Create new user from LDAP data
+            $ldapAttributes = $ldapManager->getAttributes();
+            $userData = [
+                'username' => $credentials['username'],
+                'active'   => 1,
+            ];
+            
+            if (!empty($ldapAttributes['mail'])) {
+                $userData['email'] = $ldapAttributes['mail'];
+            }
+            
+            $userId = $this->provider->insert($userData);
+            $user = $this->provider->findById($userId);
+        }
+
+        // Update user entity with ldap attributes and group sids
+        $ldapAttributes        = $ldapManager->getAttributes();
+        $user->mail            = $ldapAttributes['mail'] ?? null;
+        $user->dn              = $ldapAttributes['distinguishedName'] ?? $ldapAttributes['dn'] ?? null;
+        $user->object_sid      = $ldapAttributes['objectSid'] ?? $ldapAttributes['objectSID'] ?? null;
+        $user->ldap_attributes = json_encode($ldapAttributes);
+        $user->ldap_group_sids = json_encode($ldapManager->getGroupSids());
+        
+        $this->provider->update($user->id, $user);
+
+        // Ensure user has email/password identity for Shield compatibility
+        $identityModel = model(\CodeIgniter\Shield\Models\UserIdentityModel::class);
+        $existingIdentity = $identityModel->where('user_id', $user->id)
+                                          ->where('type', 'email_password')
+                                          ->first();
+                                          
+        if ($existingIdentity === null) {
+            try {
+                // Create email_password identity with email as name and dummy password
+                $email = $user->mail ?? ($credentials['username'] . '@ldap.local');
+                $user->createEmailIdentity([
+                    'secret' => $email,
+                    'secret2' => password_hash('LDAP_USER_NO_LOCAL_PASSWORD', PASSWORD_DEFAULT),
+                ]);
+                log_message('debug', 'Created email/password identity for LDAP user');
+            } catch (\Exception $e) {
+                log_message('error', 'Failed to create identity: ' . $e->getMessage());
+            }
+        }
+        
+        // Reload user to get the new identities
+        $user = $this->provider->findById($user->id);
+
+        if (config('AuthLDAP')->storePasswordInSession) {
+            $encrypter = Services::encrypter();
+            session()->set('password', $encrypter->encrypt($givenPassword));
         }
 
         return new Result([
-            'success' => false,
-            'reason'  => lang('AuthLDAP.ldapBindingFailed'),
+            'success'   => true,
+            'extraInfo' => $user,
         ]);
     }
 

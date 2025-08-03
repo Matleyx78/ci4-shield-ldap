@@ -130,12 +130,15 @@ class LDAPManager
         ldap_set_option($this->connection, LDAP_OPT_PROTOCOL_VERSION, 3);
         ldap_set_option($this->connection, LDAP_OPT_REFERRALS, 0);
 
+        log_message('debug', 'LDAPManager: Attempting ldap_bind with user: ' . $ldap_user);
         $this->bind = @ldap_bind($this->connection, $ldap_user, $this->password);
+        log_message('debug', 'LDAPManager: ldap_bind result: ' . ($this->bind ? 'SUCCESS' : 'FAILED'));
 
         if (ldap_error($this->connection) !== "Success") {
             $errno = strval(ldap_errno($this->connection));
             $error = json_encode(ldap_error($this->connection));
             log_message('error', 'LDAP auth Error #{errno}: {error}', ['errno' => $errno, 'error' => $error]);
+            log_message('error', 'LDAP auth failed for user: ' . $ldap_user);
         } else {
             log_message('info', 'LDAP auth successful');
         }
