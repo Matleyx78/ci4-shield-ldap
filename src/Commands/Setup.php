@@ -112,7 +112,7 @@ class Setup extends BaseCommand
         $file     = 'Config/AuthLDAP.php';
         $replaces = [
             'namespace Fortyseeds\ShieldLdap\Config' => 'namespace Config',
-            'use CodeIgniter\\Config\\BaseConfig;' => 'use Rakoitde\\Shieldldap\\Config\\AuthLDAP as ShieldAuthLDAP;',
+            'use CodeIgniter\\Config\\BaseConfig;' => 'use Fortyseeds\\ShieldLdap\\Config\\AuthLDAP as ShieldAuthLDAP;',
             'extends BaseConfig'                   => 'extends ShieldAuthLDAP',
         ];
 
@@ -170,7 +170,7 @@ class Setup extends BaseCommand
         \'tokens\'  => AccessTokens::class,
         \'session\' => Session::class,
         \'ldap\'    => LDAP::class,',
-            "'login'                       => '\\CodeIgniter\\Shield\\Views\\login'," => "'login'                       => '\\Rakoitde\\Shieldldap\\Views\\login',",
+            "'login'                       => '\\CodeIgniter\\Shield\\Views\\login'," => "'login'                       => '\\Fortyseeds\\ShieldLdap\\Views\\login',",
             'NothingPersonalValidator::class,'                                        => '// NothingPersonalValidator::class,',
             'public array $validFields = [
         \'email\',
