@@ -153,4 +153,9 @@ class AuthLDAP extends BaseConfig // class AuthLDAP extends ShieldAuthLDAP
         'min_length[3]',
         'regex_match[/\A[a-zA-Z0-9\.]+\z/]',
     ];
+    
+    /**
+     * Auto-create Shield user when LDAP authentication is successful
+     */
+    public bool $autoCreateUser = false;
 }
